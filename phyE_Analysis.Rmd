@@ -38,10 +38,11 @@ I am curious as to which data have the least "noise" or residual variation.  One
 ```{r}
 data <- within(data,{
   epi.int1 <- epi+int1
+  epi.int12 <- epi+int1+int2 # from the perspective of having worked with the plants, this seems best.
   epi.int123 <- epi+int1+int2+int3
 })
 with(data,{
-  sapply(names(data)[7:16],function(x) {
+  sapply(names(data)[7:17],function(x) {
     means <- tapply(get(x),list(genotype,treatment,rep),mean,na.rm=T)
     sdevs <- tapply(get(x),list(genotype,treatment,rep),sd,na.rm=T)
     mean(sdevs/means,na.rm=T)
@@ -113,97 +114,56 @@ pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge
 pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
 ```
 
-## int1 only
+## epi+int1+int2
 
 ```{r}
-lmer.int1_1 <- lmer(int1 ~ genotype*treatment + (1|rep) + (1|shelf) + (1|start), data=data)
-lmer.int1_2 <- lmer(int1 ~ genotype*treatment + (1|rep) + (1|start), data=data)
-anova(lmer.int1_1,lmer.int1_2) # no pref; drop shelf
-lmer.int1_3 <- lmer(int1 ~ genotype*treatment + (1|start), data=data)
-anova(lmer.int1_2,lmer.int1_3) # keep rep
-lmer.int1_4 <- lmer(int1 ~ genotype*treatment + (1|rep), data=data)
-anova(lmer.int1_2,lmer.int1_4) # drop start
-summary(lmer.int1_4) #final model.
+lmer.epi.int12_1 <- lmer(epi.int12 ~ genotype*treatment + (1|rep) + (1|shelf) + (1|start), data=data)
+lmer.epi.int12_2 <- lmer(epi.int12 ~ genotype*treatment + (1|rep) + (1|start), data=data)
+anova(lmer.epi.int12_1,lmer.epi.int12_2) # no pref; drop shelf
+lmer.epi.int12_3 <- lmer(epi.int12 ~ genotype*treatment + (1|start), data=data)
+anova(lmer.epi.int12_2,lmer.epi.int12_3) # keep rep
+lmer.epi.int12_4 <- lmer(epi.int12 ~ genotype*treatment + (1|rep), data=data)
+anova(lmer.epi.int12_2,lmer.epi.int12_4) # keep start
+summary(lmer.epi.int12_2) #final model.
 ```
 
 Get predictions from model for plotting.  First create a data frame to hold the results.  Then use `predict()` to get the BLUPs and finally extract the errors from the model.
 ```{r}
-int1.results <- data.frame(
+epi.int12.results <- data.frame(
   genotype=rep(levels(data$genotype),2),
   treatment=rep(levels(data$treatment),each=nlevels(data$genotype))
 )
-int1.results$int1 <- predict(lmer.int1_4,int1.results,re.form=NA)
-head(int1.results)
+epi.int12.results$epi.int12 <- predict(lmer.epi.int12_2,epi.int12.results,re.form=NA)
+head(epi.int12.results)
 
-#confint95 <- confint(lmer.int1_4,parm="beta_",method="boot",nsim=1000) 
+#confint95 <- confint(lmer.epi.int12_4,parm="beta_",method="boot",nsim=1000) 
 #because these are centered on the coefficients rather than on the final estimates we need to do some conversion
-#confint95.adj <- confint95-fixef(lmer.int1_4)+int1.results$int1
+#confint95.adj <- confint95-fixef(lmer.epi.int12_4)+epi.int12.results$epi.int12
 
 #add to the df
-#int1.results$confint95.low <- confint95.adj[,1] 
-#int1.results$confint95.high <- confint95.adj[,2]
-#int1.results
+#epi.int12.results$confint95.low <- confint95.adj[,1] 
+#epi.int12.results$confint95.high <- confint95.adj[,2]
+#epi.int12.results
 
 #Although less precise we can also add the s.e.m from the original fit.
 #Because the standard in our field for plots is s.e.m this will make a more "traditional" plot
 
-int1.results$sem.low <- int1.results$int1 - summary(lmer.int1_4)$coefficients[,"Std. Error"]
-int1.results$sem.high <- int1.results$int1 + summary(lmer.int1_4)$coefficients[,"Std. Error"]
+epi.int12.results$sem.low <- epi.int12.results$epi.int12 - summary(lmer.epi.int12_2)$coefficients[,"Std. Error"]
+epi.int12.results$sem.high <- epi.int12.results$epi.int12 + summary(lmer.epi.int12_2)$coefficients[,"Std. Error"]
 ```
 
 plot it
 ```{r}
-int1.results$treatment <- relevel(int1.results$treatment,ref="sun")
-int1.results$genotype <- factor(int1.results$genotype,levels=c("MM","A","B1","B2","E3","E7","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
-pl <- ggplot(int1.results,aes(x=genotype,fill=treatment,y=int1))
+epi.int12.results$treatment <- relevel(epi.int12.results$treatment,ref="sun")
+epi.int12.results$genotype <- factor(epi.int12.results$genotype,levels=c("MM","A","B1","B2","E3","E7","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
+pl <- ggplot(epi.int12.results,aes(x=genotype,fill=treatment,y=epi.int12))
 pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
 pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
-```
 
-## epi+int1
-
-```{r}
-lmer.epi.int1_1 <- lmer(epi.int1 ~ genotype*treatment + (1|rep) + (1|shelf) + (1|start), data=data)
-lmer.epi.int1_2 <- lmer(epi.int1 ~ genotype*treatment + (1|rep) + (1|start), data=data)
-anova(lmer.epi.int1_1,lmer.epi.int1_2) # no pref; drop shelf
-lmer.epi.int1_3 <- lmer(epi.int1 ~ genotype*treatment + (1|start), data=data)
-anova(lmer.epi.int1_2,lmer.epi.int1_3) # keep rep
-lmer.epi.int1_4 <- lmer(epi.int1 ~ genotype*treatment + (1|rep), data=data)
-anova(lmer.epi.int1_2,lmer.epi.int1_4) # drop start
-summary(lmer.epi.int1_4) #final model.
-```
-
-Get predictions from model for plotting.  First create a data frame to hold the results.  Then use `predict()` to get the BLUPs and finally extract the errors from the model.
-```{r}
-epi.int1.results <- data.frame(
-  genotype=rep(levels(data$genotype),2),
-  treatment=rep(levels(data$treatment),each=nlevels(data$genotype))
-)
-epi.int1.results$epi.int1 <- predict(lmer.epi.int1_4,epi.int1.results,re.form=NA)
-head(epi.int1.results)
-
-#confint95 <- confint(lmer.epi.int1_4,parm="beta_",method="boot",nsim=1000) 
-#because these are centered on the coefficients rather than on the final estimates we need to do some conversion
-#confint95.adj <- confint95-fixef(lmer.epi.int1_4)+epi.int1.results$epi.int1
-
-#add to the df
-#epi.int1.results$confint95.low <- confint95.adj[,1] 
-#epi.int1.results$confint95.high <- confint95.adj[,2]
-#epi.int1.results
-
-#Although less precise we can also add the s.e.m from the original fit.
-#Because the standard in our field for plots is s.e.m this will make a more "traditional" plot
-
-epi.int1.results$sem.low <- epi.int1.results$epi.int1 - summary(lmer.epi.int1_4)$coefficients[,"Std. Error"]
-epi.int1.results$sem.high <- epi.int1.results$epi.int1 + summary(lmer.epi.int1_4)$coefficients[,"Std. Error"]
-```
-
-plot it
-```{r}
-epi.int1.results$treatment <- relevel(epi.int1.results$treatment,ref="sun")
-epi.int1.results$genotype <- factor(epi.int1.results$genotype,levels=c("MM","A","B1","B2","E3","E7","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
-pl <- ggplot(epi.int1.results,aes(x=genotype,fill=treatment,y=epi.int1))
+#to subset
+epi.int12.results.singles <- epi.int12.results[epi.int12.results$genotype %in% c("MM","A","B1","B2","E7"),] #i.e. for singles
+pl <- ggplot(epi.int12.results.singles,aes(x=genotype,fill=treatment,y=epi.int12))
 pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
 pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
