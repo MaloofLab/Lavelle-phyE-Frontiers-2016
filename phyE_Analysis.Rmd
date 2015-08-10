@@ -1,0 +1,46 @@
+---
+title: "phyE mutant analysis"
+author: "Julin Maloof"
+date: "August 10, 2015"
+output: html_document
+---
+
+## Load the data and libraries
+
+```{r}
+library(ggplot2)
+library(lmerTest)
+library(lme4)
+data <- read.csv("phyintpetbothreps.csv")
+head(data)
+summary(data)
+data <- data[,!grepl("X",colnames(data))] # get rid of time stamp columns
+summary(data)
+```
+
+## Coefficient of variation for each organ
+I am curious as to which data have the least "noise" or residual variation.  One way to do this is to calculate the coefficient of variation.  CV is standard dev / mean.  I am also curious, for the internodes, what combining them looks like.
+
+```{r}
+data <- within(data,{
+  epi.int1 <- epi+int1
+  epi.int123 <- epi+int1+int2+int3
+})
+with(data,{
+  sapply(names(data)[7:16],function(x) {
+    means <- tapply(get(x),list(genotype,treatment,rep),mean,na.rm=T)
+    sdevs <- tapply(get(x),list(genotype,treatment,rep),sd,na.rm=T)
+    mean(sdevs/means,na.rm=T)
+  })
+})
+```
+
+Conclusion: earlier organs are better.  Combining epi+int1 is also good; combining all shoot organs may be reasonable.
+
+## Modelling for individual organs
+
+Use a mixed effect model to take into account random variation, like rep and flat.  Need to make a new variable for flat to make sure we aren't confused about which flat came from which experiment.
+
+
+
+
