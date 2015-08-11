@@ -17,7 +17,7 @@ summary(data)
 data <- data[,!grepl("X",colnames(data))] # get rid of time stamp columns
 summary(data)
 data$treatment <- relevel(data$treatment,ref="sun")
-data$genotype <- factor(data$genotype,levels=c("MM","A","B1","B2","E3","E7","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
+data$genotype <- factor(data$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
 data$rep <- factor(data$rep)
 data$start <- factor(data$start)
 ```
@@ -107,7 +107,7 @@ epi.results$sem.high <- epi.results$epi + summary(lmer.epi4)$coefficients[,"Std.
 plot it
 ```{r}
 epi.results$treatment <- relevel(epi.results$treatment,ref="sun")
-epi.results$genotype <- factor(epi.results$genotype,levels=c("MM","A","B1","B2","E3","E7","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
+epi.results$genotype <- factor(epi.results$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
 pl <- ggplot(epi.results,aes(x=genotype,fill=treatment,y=epi))
 pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
@@ -155,7 +155,7 @@ epi.int12.results$sem.high <- epi.int12.results$epi.int12 + summary(lmer.epi.int
 plot it
 ```{r}
 epi.int12.results$treatment <- relevel(epi.int12.results$treatment,ref="sun")
-epi.int12.results$genotype <- factor(epi.int12.results$genotype,levels=c("MM","A","B1","B2","E3","E7","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
+epi.int12.results$genotype <- factor(epi.int12.results$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
 pl <- ggplot(epi.int12.results,aes(x=genotype,fill=treatment,y=epi.int12))
 pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
