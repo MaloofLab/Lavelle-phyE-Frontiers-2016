@@ -18,7 +18,9 @@ summary(data)
 data <- data[,!grepl("X",colnames(data))] # get rid of time stamp columns
 summary(data)
 data$treatment <- relevel(data$treatment,ref="sun")
-data$genotype <- factor(data$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
+#We get into trouble later for column names that start with a number, so...
+data$genotype <- sub("^([1,2])","B\\1",data$genotype)
+data$genotype <- factor(data$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","B1E3","B1E7","B2E3","B2E7","TR3","TR7","QD3","QD7"))
 data$rep <- factor(data$rep)
 data$start <- factor(data$start)
 ```
@@ -108,7 +110,7 @@ epi.results$sem.high <- epi.results$epi + summary(lmer.epi4)$coefficients[,"Std.
 plot it
 ```{r}
 epi.results$treatment <- relevel(epi.results$treatment,ref="sun")
-epi.results$genotype <- factor(epi.results$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
+epi.results$genotype <- factor(epi.results$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","B1E3","B1E7","B2E3","B2E7","TR3","TR7","QD3","QD7"))
 pl <- ggplot(epi.results,aes(x=genotype,fill=treatment,y=epi))
 pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
@@ -156,7 +158,7 @@ epi.int12.results$sem.high <- epi.int12.results$epi.int12 + summary(lmer.epi.int
 plot it
 ```{r}
 epi.int12.results$treatment <- relevel(epi.int12.results$treatment,ref="sun")
-epi.int12.results$genotype <- factor(epi.int12.results$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
+epi.int12.results$genotype <- factor(epi.int12.results$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","B1E3","B1E7","B2E3","B2E7","TR3","TR7","QD3","QD7"))
 pl <- ggplot(epi.int12.results,aes(x=genotype,fill=treatment,y=epi.int12))
 pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
@@ -170,9 +172,36 @@ pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge
 pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
 ```
 
-### figure out multiple comparisons
+### multiple comparisons
 ```{r}
-names(fixef(lmer.epi.int12_2)) # the contrasts that we can make
-difflsmeans(lmer.epi.int12_2)
+make.contr <- function(comparisons, contr) {
+  new.matrix <- matrix(0,nrow=length(comparisons),ncol=ncol(contr))
+  colnames(new.matrix) <- colnames(contr)
+  rownames(new.matrix) <- comparisons
+  for(comp in comparisons) {
+    coefs <- trimws(unlist(strsplit(comp,split="-")))
+    new.matrix[comp,coefs] <- c(1,-1)
+  }
+  new.matrix}
+
+contr <- matrix(nrow=0,ncol=length(names(fixef(lmer.epi.int12_2))))
+colnames(contr) <- sub("genotype","",names(fixef(lmer.epi.int12_2)))
+colnames(contr) <- sub("treatment","",colnames(contr))
+
+#each row will represent a contrast, with a -1 and +1 noting what we want to compare
+
+comparisons <- c("B1E7 - B1",
+                 "B2E7 - B2",
+                 "TR7 - B12",
+                 "QD7 - TR7",
+                 "B1E7:shade - B1:shade",
+                 "B2E7:shade - B2:shade",
+                 "TR7:shade - B12:shade",
+                 "QD7:shade - TR7:shade")
+
+contr <- make.contr(comparisons = comparisons, contr)
+
+summary(glht(lmer.epi.int12_2, linfct=contr))
+
 ```
 
