@@ -11,6 +11,7 @@ output: html_document
 library(ggplot2)
 library(lme4)
 library(lmerTest)
+library(multcomp)
 data <- read.csv("phyintpetbothreps.csv")
 head(data)
 summary(data)
@@ -168,3 +169,10 @@ pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
 pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
 ```
+
+### figure out multiple comparisons
+```{r}
+names(fixef(lmer.epi.int12_2)) # the contrasts that we can make
+difflsmeans(lmer.epi.int12_2)
+```
+
