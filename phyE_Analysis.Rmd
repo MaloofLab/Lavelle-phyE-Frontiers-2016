@@ -1,7 +1,7 @@
 ---
 title: "phyE mutant analysis"
 author: "Julin Maloof"
-date: "August 10, 2015"
+date: "August 10, 2015; updated July 11, 2016"
 output: html_document
 ---
 
@@ -25,8 +25,8 @@ data$start <- factor(data$start)
 
 ## Focus on E7
 
-if we want to only focus on E7, uncomment and run the following
-```{r, eval=FALSE}
+if we want to only focus on E7 run the following
+```{r, eval=TRUE}
 #not run
 data <- data[!grepl("3",data$genotype),]
 data <- droplevels(data)
@@ -151,16 +151,31 @@ head(epi.int12.results)
 
 epi.int12.results$sem.low <- epi.int12.results$epi.int12 - summary(lmer.epi.int12_2)$coefficients[,"Std. Error"]
 epi.int12.results$sem.high <- epi.int12.results$epi.int12 + summary(lmer.epi.int12_2)$coefficients[,"Std. Error"]
+
+#add p-values
+epi.int12.results$p.value <- summary(lmer.epi.int12_2)$coefficients[,"Pr(>|t|)"]
+
+# add character representation of significance
+epi.int12.results$p.value.txt <- NA
+epi.int12.results$p.value.txt[epi.int12.results$p.value < 0.05] <- "*"
+epi.int12.results$p.value.txt[epi.int12.results$p.value < 0.01] <- "**"
+epi.int12.results$p.value.txt[epi.int12.results$p.value < 0.001] <- "***"
 ```
 
 plot it
 ```{r}
 epi.int12.results$treatment <- relevel(epi.int12.results$treatment,ref="sun")
-epi.int12.results$genotype <- factor(epi.int12.results$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
+epi.int12.results$genotype <- factor(epi.int12.results$genotype,
+                                     levels=c("MM","A","B1","B2","E7","B12","1E7","2E7","TR7","QD7"),
+                                     labels=unlist(strsplit("MoneyMaker, phyA, phyB1, phyB2, phyE, phyB1/phyB2, phyB1/phyE, phyB2/phyE, phyB1/phyB2/phyE, phyA/phyB1/phyB2/phyE",split=", ")))
+                                     
 pl <- ggplot(epi.int12.results,aes(x=genotype,fill=treatment,y=epi.int12))
 pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
-pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
+pl <- pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
+pl <- pl + theme(axis.text.x=element_text(angle=45,vjust =1,hjust=1))
+pl <- pl + ylab("length (mm)")
+ pl + geom_text(aes(label=p.value.txt,y=epi.int12+18),position=position_dodge(width=0.9))
 
 #to subset
 epi.int12.results.singles <- epi.int12.results[epi.int12.results$genotype %in% c("MM","A","B1","B2","E7"),] #i.e. for singles
