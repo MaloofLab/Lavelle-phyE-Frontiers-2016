@@ -27,7 +27,6 @@ data$start <- factor(data$start)
 
 if we want to only focus on E7 run the following
 ```{r, eval=TRUE}
-#not run
 data <- data[!grepl("3",data$genotype),]
 data <- droplevels(data)
 ```
@@ -103,16 +102,30 @@ head(epi.results)
 
 epi.results$sem.low <- epi.results$epi - summary(lmer.epi4)$coefficients[,"Std. Error"]
 epi.results$sem.high <- epi.results$epi + summary(lmer.epi4)$coefficients[,"Std. Error"]
+
+#add p-values
+epi.results$p.value <- summary(lmer.epi4)$coefficients[,"Pr(>|t|)"]
+
+# add character representation of significance
+epi.results$p.value.txt <- NA
+epi.results$p.value.txt[epi.results$p.value < 0.05] <- "*"
+epi.results$p.value.txt[epi.results$p.value < 0.01] <- "**"
+epi.results$p.value.txt[epi.results$p.value < 0.001] <- "***"
 ```
 
 plot it
 ```{r}
 epi.results$treatment <- relevel(epi.results$treatment,ref="sun")
-epi.results$genotype <- factor(epi.results$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"))
+epi.results$genotype <- factor(epi.results$genotype,
+                               levels=c("MM","A","B1","B2","E3","E7","B12","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"),
+                               labels=unlist(strsplit("MoneyMaker, phyA, phyB1, phyB2, phyE-3, phyE-7, phyB1/phyB2, phyB1/phyE-3, phyB1/phyE-7, phyB2/phyE-3, phyB2/phyE-7, phyB1/phyB2/phyE-3, phyB1/phyB2/phyE-7, phyA/phyB1/phyB2/phyE-3, phyA/phyB1/phyB2/phyE-7",split=", ")))
 pl <- ggplot(epi.results,aes(x=genotype,fill=treatment,y=epi))
 pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
-pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
+pl <- pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
+pl <- pl + theme(axis.text.x=element_text(angle=45,vjust =1,hjust=1))
+pl <- pl + ylab("length (mm)")
+pl + geom_text(aes(label=p.value.txt,y=sem.high+1),position=position_dodge(width=0.9))
 ```
 
 ## epi+int1+int2
@@ -137,7 +150,7 @@ epi.int12.results <- data.frame(
 epi.int12.results$epi.int12 <- predict(lmer.epi.int12_2,epi.int12.results,re.form=NA)
 head(epi.int12.results)
 
-#confint95 <- confint(lmer.epi.int12_4,parm="beta_",method="boot",nsim=1000) 
+#confint95 <- confint(lmer.epi.int12_2,parm="beta_",method="boot",nsim=1000) 
 #because these are centered on the coefficients rather than on the final estimates we need to do some conversion
 #confint95.adj <- confint95-fixef(lmer.epi.int12_4)+epi.int12.results$epi.int12
 
@@ -166,8 +179,8 @@ plot it
 ```{r}
 epi.int12.results$treatment <- relevel(epi.int12.results$treatment,ref="sun")
 epi.int12.results$genotype <- factor(epi.int12.results$genotype,
-                                     levels=c("MM","A","B1","B2","E7","B12","1E7","2E7","TR7","QD7"),
-                                     labels=unlist(strsplit("MoneyMaker, phyA, phyB1, phyB2, phyE, phyB1/phyB2, phyB1/phyE, phyB2/phyE, phyB1/phyB2/phyE, phyA/phyB1/phyB2/phyE",split=", ")))
+                                levels=c("MM","A","B1","B2","E3","E7","B12","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"),
+                                labels=unlist(strsplit("MoneyMaker, phyA, phyB1, phyB2, phyE-3, phyE-7, phyB1/phyB2, phyB1/phyE-3, phyB1/phyE-7, phyB2/phyE-3, phyB2/phyE-7, phyB1/phyB2/phyE-3, phyB1/phyB2/phyE-7, phyA/phyB1/phyB2/phyE-3, phyA/phyB1/phyB2/phyE-7",split=", ")))
                                      
 pl <- ggplot(epi.int12.results,aes(x=genotype,fill=treatment,y=epi.int12))
 pl <- pl + geom_bar(stat="identity",position="dodge")
@@ -175,19 +188,45 @@ pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge
 pl <- pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
 pl <- pl + theme(axis.text.x=element_text(angle=45,vjust =1,hjust=1))
 pl <- pl + ylab("length (mm)")
- pl + geom_text(aes(label=p.value.txt,y=epi.int12+18),position=position_dodge(width=0.9))
+pl + geom_text(aes(label=p.value.txt,y=sem.high+2),position=position_dodge(width=0.9))
 
 #to subset
-epi.int12.results.singles <- epi.int12.results[epi.int12.results$genotype %in% c("MM","A","B1","B2","E7"),] #i.e. for singles
+epi.int12.results.singles <- epi.int12.results[epi.int12.results$genotype %in% c("MoneyMaker","phyA","phyB1","phyB2","phyE-7"),] #i.e. for singles
 pl <- ggplot(epi.int12.results.singles,aes(x=genotype,fill=treatment,y=epi.int12))
 pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
 pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
 ```
 
-### figure out multiple comparisons
+### Additional comparisons
+
+We do not have enough power to do all pair-wise comparisions.  Instead, look at the two of most relevance to this study (comparing triple to relevant doubles)
 ```{r}
-names(fixef(lmer.epi.int12_2)) # the contrasts that we can make
-difflsmeans(lmer.epi.int12_2)
+
+comparisons <- c("genotypeTR7:treatmentshade - genotypeB12:treatmentshade = 0",
+                 "genotypeTR7:treatmentshade - genotype1E7:treatmentshade = 0",
+                 "genotypeTR7:treatmentshade - genotype2E7:treatmentshade = 0"
+                 )
+
+glht1 <- glht(lmer.epi.int12_2,linfct=comparisons)
+
+summary(glht1,test=adjusted("Westfall"))
+
 ```
+
+## P-values for Figure 4
+
+```{r}
+data <- read.csv("figure4phyE.csv")
+summary(data)
+data$treatment <- relevel(data$treatment,ref="sun")
+data$day <- factor(data$day)
+data$flat <- factor(data$flat)
+lmer1 <- lmer(epi ~ genotype*treatment*day + (1|flat),data=data)
+summary(lmer1)
+summary(lmer1)$coefficients[grepl("phyE",rownames(summary(lmer1)$coefficients)),]
+min(summary(lmer1)$coefficients[grepl("phyE",rownames(summary(lmer1)$coefficients)),"Pr(>|t|)"])
+```
+
+So no shade effect, the only genotype effects are phyB1 and phyB1/phyB2.  phyE P-values > 0.5
 
