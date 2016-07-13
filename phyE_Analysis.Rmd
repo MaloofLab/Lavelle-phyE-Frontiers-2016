@@ -118,13 +118,9 @@ epi.results$p.value.txt[epi.results$p.value < 0.001] <- "***"
 plot it
 ```{r}
 epi.results$treatment <- relevel(epi.results$treatment,ref="sun")
-<<<<<<< HEAD
-epi.results$genotype <- factor(epi.results$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","B1E3","B1E7","B2E3","B2E7","TR3","TR7","QD3","QD7"))
-=======
 epi.results$genotype <- factor(epi.results$genotype,
                                levels=c("MM","A","B1","B2","E3","E7","B12","1E3","1E7","2E3","2E7","TR3","TR7","QD3","QD7"),
                                labels=unlist(strsplit("MoneyMaker, phyA, phyB1, phyB2, phyE-3, phyE-7, phyB1/phyB2, phyB1/phyE-3, phyB1/phyE-7, phyB2/phyE-3, phyB2/phyE-7, phyB1/phyB2/phyE-3, phyB1/phyB2/phyE-7, phyA/phyB1/phyB2/phyE-3, phyA/phyB1/phyB2/phyE-7",split=", ")))
->>>>>>> 721ef6fdaf5ab47b6e2417e1eb1e4f97eba531fc
 pl <- ggplot(epi.results,aes(x=genotype,fill=treatment,y=epi))
 pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
