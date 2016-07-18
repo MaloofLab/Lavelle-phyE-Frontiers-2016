@@ -1,7 +1,7 @@
 ---
 title: "phyE mutant analysis"
 author: "Julin Maloof"
-date: "August 10, 2015; updated July 11, 2016"
+date: "August 10, 2015; updated July 11-18, 2016"
 output: html_document
 ---
 
@@ -128,6 +128,7 @@ pl <- pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to chang
 pl <- pl + theme(axis.text.x=element_text(angle=45,vjust =1,hjust=1))
 pl <- pl + ylab("length (mm)")
 pl + geom_text(aes(label=p.value.txt,y=sem.high+1),position=position_dodge(width=0.9))
+ggsave("phyE_epicotyl.pdf",height=5,width=7.5)
 ```
 
 ## epi+int1+int2
@@ -197,6 +198,7 @@ pl <- ggplot(epi.int12.results.singles,aes(x=genotype,fill=treatment,y=epi.int12
 pl <- pl + geom_bar(stat="identity",position="dodge")
 pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
 pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
+ggsave("phyE_epicotyl.pdf",height=5,width=7.5)
 ```
 
 ### multiple comparisons
@@ -227,6 +229,8 @@ comparisons <- c("B1E7 - B1",
                  "QD7:shade - TR7:shade")
 
 contr <- make.contr(comparisons = comparisons, contr)
+
+summary(glht(lmer.epi4, linfct=contr),test=adjusted("holm"))
 
 summary(glht(lmer.epi.int12_2, linfct=contr),test=adjusted("holm"))
 ```
