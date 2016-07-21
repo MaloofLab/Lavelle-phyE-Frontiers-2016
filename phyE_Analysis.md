@@ -1,6 +1,6 @@
 # phyE mutant analysis
 Julin Maloof  
-August 10, 2015; updated July 11-18, 2016  
+August 10, 2015; updated July 11-21, 2016  
 
 
 ```r
@@ -541,7 +541,7 @@ So no shade effect, the only genotype effects are phyB1 and phyB1/phyB2.  phyE P
 
 
 
-# Figure 5
+# Figure 6
 
 
 ```r
