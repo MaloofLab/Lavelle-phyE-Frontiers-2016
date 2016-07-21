@@ -100,21 +100,75 @@ p.adjust(sapply(levels(fig2c$genotype),
 
 # Figure 4
 
-## P-values for Figure 4
+## Figure 4 data and analysis
 ```{r}
 data <- read.csv("figure4phyE.csv")
 summary(data)
 data$treatment <- relevel(data$treatment,ref="sun")
 data$day <- factor(data$day)
 data$flat <- factor(data$flat)
-for (d in levels(data$day)) {
-  print(d)
-lmer1 <- lmer(epi ~ genotype*treatment + (1|flat),data=data[data$day==d,])
-print(summary(lmer1))
-}
+data$epi.int12 <- data$epi + data$int1 + data$int2 #analyze overall stem elongation
+data <- droplevels(data[data$genotype!="phyEami3",])
+
+lmer1 <- lmer(epi.int12 ~ genotype*treatment*day + (1|flat),data=data)
+summary(lmer1) 
 ```
 
-So no shade effect, the only genotype effects are phyB1 and phyB1/phyB2.  phyE P-values > 0.5
+## Figure 4 get model predictions
+```{r}
+# a bit of messing around to get a prediction data frame that has the pvalues...
+fig4.pred.df <- as.data.frame(summary(lmer1)$coefficients)
+fig4.pred.df$coefname <- row.names(fig4.pred.df)
+fig4.pred.df$genotype <- sapply(fig4.pred.df$coefname,function(x) {
+  ifelse(grepl("genotype",x),
+         regmatches(x,regexpr("(phyB1)|(phyB1/B2)|(phyEami7)|(phyB2)",x)),
+         "Moneymaker")
+})
+fig4.pred.df$day <- sapply(fig4.pred.df$coefname,function(x) {
+  ifelse(grepl("day",x),
+         regmatches(x,regexpr("28|35",x)),
+         "21")
+})
+fig4.pred.df$treatment <- with(fig4.pred.df,ifelse(grepl("treatment",coefname),"shade","sun"))
+fig4.pred.df$length <- predict(lmer1,fig4.pred.df,re.form=NA)
+```
+
+## Figure 4 plot
+```{r}
+colnames(fig4.pred.df)[c(2,5)] <- c("SE","p.value")
+fig4.pred.df$treatment <- factor(fig4.pred.df$treatment,levels=c("sun","shade"))
+fig4.pred.df$genotype <- factor(fig4.pred.df$genotype, levels=c("Moneymaker","phyB1","phyB2","phyB1/B2","phyEami7"), 
+                                labels = c("Moneymaker","phyB1","phyB2","phyB1/phyB2","PHYE-amiRNA"))
+fig4.pred.df$p.value[grepl("^day",fig4.pred.df$coefname)] <- NA # we do not care about the day effect per se
+fig4.pred.df$p.value.txt <- NA
+fig4.pred.df$p.value.txt[fig4.pred.df$p.value < 0.05] <- "*"
+fig4.pred.df$p.value.txt[fig4.pred.df$p.value < 0.01] <- "**"
+fig4.pred.df$p.value.txt[fig4.pred.df$p.value < 0.001] <- "***"
+
+pl <- ggplot(fig4.pred.df,aes(x=genotype,y=length,fill=treatment,ymax=length+SE,min=length-SE))
+pl <- pl + geom_bar(position="dodge",stat="identity")
+pl <- pl + facet_grid(. ~ day)
+pl <- pl + theme_bw() +  theme(axis.text.x=element_text(angle=45,vjust =1,hjust=1))
+pl <- pl + ylab("length (mm)")
+pl <- pl + geom_errorbar(position=position_dodge(width=.9),width=.5)
+pl <- pl + geom_text(aes(label=p.value.txt,y=length+SE+2),position=position_dodge(width=0.9))
+pl + scale_fill_manual(values=c("sun"="gray80","shade"="black"))
+ggsave("fig4.pdf",width=7,height=4)
+
+pl <- ggplot(fig4.pred.df,aes(x=day,y=length,color=treatment,ymax=length+SE,min=length-SE,group=treatment))
+pl <- pl + geom_line()
+pl <- pl + facet_grid(. ~ genotype)
+pl <- pl + theme_bw() 
+pl <- pl + ylab("length (mm)")
+pl <- pl + geom_errorbar(width=.5)
+pl <- pl + geom_text(aes(label=p.value.txt,y=length+SE+2))
+pl
+ggsave("fig4.alt.pdf",width=7,height=4)
+
+
+```
+
+
 
 
 

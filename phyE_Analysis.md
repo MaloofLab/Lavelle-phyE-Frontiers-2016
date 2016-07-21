@@ -56,21 +56,6 @@ library(multcomp)
 ## Loading required package: TH.data
 ```
 
-```
-## Loading required package: MASS
-```
-
-```
-## 
-## Attaching package: 'TH.data'
-```
-
-```
-## The following object is masked from 'package:MASS':
-## 
-##     geyser
-```
-
 
 # Figure 2
 
@@ -149,7 +134,7 @@ x <- barplot(fig2a.mean,beside=T,col=c("grey80","black"),ylim=c(0,max(fig2a.mean
 arrows(x,fig2a.mean+fig2a.sem,x,fig2a.mean-fig2a.sem,code=3,angle=90,length=.05)
 ```
 
-![](phyE_Analysis_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+![](phyE_Analysis_files/figure-html/unnamed-chunk-2-1.png)
 
 ## Figure 2B
 
@@ -182,7 +167,7 @@ x <- barplot(fig2b.mean,beside=T,col=c("grey80","black"),ylim=c(0,max(fig2b.mean
 arrows(x,fig2b.mean+fig2b.sem,x,fig2b.mean-fig2b.sem,code=3,angle=90,length=.05)
 ```
 
-![](phyE_Analysis_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](phyE_Analysis_files/figure-html/unnamed-chunk-3-1.png)
 
 ## Figure 2AB t-tests
 
@@ -256,7 +241,7 @@ x <- barplot(fig2c.mean,beside=T,col=c("grey80","black"),ylim=c(0,max(fig2c.mean
 arrows(x,fig2c.mean+fig2c.sem,x,fig2c.mean-fig2c.sem,code=3,angle=90,length=.05)
 ```
 
-![](phyE_Analysis_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](phyE_Analysis_files/figure-html/unnamed-chunk-5-1.png)
 
 ```r
 p.adjust(sapply(levels(fig2c$genotype), 
@@ -273,7 +258,7 @@ p.adjust(sapply(levels(fig2c$genotype),
 
 # Figure 4
 
-## P-values for Figure 4
+## Figure 4 data and analysis
 
 ```r
 data <- read.csv("figure4phyE.csv")
@@ -308,236 +293,188 @@ summary(data)
 data$treatment <- relevel(data$treatment,ref="sun")
 data$day <- factor(data$day)
 data$flat <- factor(data$flat)
-for (d in levels(data$day)) {
-  print(d)
-lmer1 <- lmer(epi ~ genotype*treatment + (1|flat),data=data[data$day==d,])
-print(summary(lmer1))
-}
+data$epi.int12 <- data$epi + data$int1 + data$int2 #analyze overall stem elongation
+data <- droplevels(data[data$genotype!="phyEami3",])
+
+lmer1 <- lmer(epi.int12 ~ genotype*treatment*day + (1|flat),data=data)
+summary(lmer1) 
 ```
 
 ```
-## [1] "21"
 ## Linear mixed model fit by REML t-tests use Satterthwaite approximations
 ##   to degrees of freedom [lmerMod]
-## Formula: epi ~ genotype * treatment + (1 | flat)
-##    Data: data[data$day == d, ]
+## Formula: epi.int12 ~ genotype * treatment * day + (1 | flat)
+##    Data: data
 ## 
-## REML criterion at convergence: 434.2
+## REML criterion at convergence: 1404.9
 ## 
 ## Scaled residuals: 
-##      Min       1Q   Median       3Q      Max 
-## -2.55928 -0.32039  0.05888  0.37251  2.49877 
+##     Min      1Q  Median      3Q     Max 
+## -3.7364 -0.4180 -0.0237  0.4864  3.0643 
 ## 
 ## Random effects:
 ##  Groups   Name        Variance Std.Dev.
-##  flat     (Intercept)  2.355   1.535   
-##  Residual             11.987   3.462   
-## Number of obs: 88, groups:  flat, 6
+##  flat     (Intercept)  33.11    5.754  
+##  Residual             146.86   12.118  
+## Number of obs: 201, groups:  flat, 6
 ## 
 ## Fixed effects:
-##                                 Estimate Std. Error      df t value
-## (Intercept)                       7.3286     1.5733 50.9300   4.658
-## genotypephyB1                    14.8531     2.0587 73.9000   7.215
-## genotypephyB1/B2                  8.2401     2.0188 72.0000   4.082
-## genotypephyB2                    -1.1781     2.0497 73.5700  -0.575
-## genotypephyEami3                 -0.1585     1.9003 74.7700  -0.083
-## genotypephyEami7                 -0.7975     1.9395 71.6300  -0.411
-## treatmentshade                    1.8483     1.9989 70.8300   0.925
-## genotypephyB1:treatmentshade      3.7650     2.8269 70.8300   1.332
-## genotypephyB1/B2:treatmentshade   5.5150     2.8269 70.8300   1.951
-## genotypephyB2:treatmentshade     -1.7417     2.8269 70.8300  -0.616
-## genotypephyEami3:treatmentshade   0.6090     2.5197 71.0300   0.242
-## genotypephyEami7:treatmentshade  -0.2842     2.5945 71.0300  -0.110
-##                                 Pr(>|t|)    
-## (Intercept)                     2.32e-05 ***
-## genotypephyB1                   3.93e-10 ***
-## genotypephyB1/B2                0.000114 ***
-## genotypephyB2                   0.567216    
-## genotypephyEami3                0.933730    
-## genotypephyEami7                0.682182    
-## treatmentshade                  0.358286    
-## genotypephyB1:treatmentshade    0.187186    
-## genotypephyB1/B2:treatmentshade 0.055029 .  
-## genotypephyB2:treatmentshade    0.539806    
-## genotypephyEami3:treatmentshade 0.809705    
-## genotypephyEami7:treatmentshade 0.913098    
+##                                       Estimate Std. Error       df t value
+## (Intercept)                             8.0716     5.5285  78.5000   1.460
+## genotypephyB1                          17.7593     7.1063 167.5900   2.499
+## genotypephyB1/B2                        9.9975     7.0344 166.5900   1.421
+## genotypephyB2                           0.7949     7.0964 167.5400   0.112
+## genotypephyEami7                       -0.7587     6.7673 166.4100  -0.112
+## treatmentshade                          2.3067     6.9966 166.0100   0.330
+## day28                                  30.1867     6.9966 166.0100   4.314
+## day35                                  66.2500     6.9966 166.0100   9.469
+## genotypephyB1:treatmentshade            3.2417     9.8947 166.0100   0.328
+## genotypephyB1/B2:treatmentshade         5.5983     9.8947 166.0100   0.566
+## genotypephyB2:treatmentshade           -2.3583     9.8947 166.0100  -0.238
+## genotypephyEami7:treatmentshade         0.4295     9.0731 166.0900   0.047
+## genotypephyB1:day28                    37.8733     9.8947 166.0100   3.828
+## genotypephyB1/B2:day28                 29.4333     9.8947 166.0100   2.975
+## genotypephyB2:day28                    -1.9250     9.8947 166.0100  -0.195
+## genotypephyEami7:day28                 -5.3738     9.5347 166.0100  -0.564
+## genotypephyB1:day35                    48.6617     9.8947 166.0100   4.918
+## genotypephyB1/B2:day35                 38.1200     9.8947 166.0100   3.853
+## genotypephyB2:day35                     3.4900     9.8947 166.0100   0.353
+## genotypephyEami7:day35                 -8.7014     9.5347 166.0100  -0.913
+## treatmentshade:day28                    6.3733     9.8947 166.0100   0.644
+## treatmentshade:day35                   47.1633     9.8947 166.0100   4.767
+## genotypephyB1:treatmentshade:day28      5.7833    13.9931 166.0100   0.413
+## genotypephyB1/B2:treatmentshade:day28  -1.2100    13.9931 166.0100  -0.086
+## genotypephyB2:treatmentshade:day28      2.5167    13.9931 166.0100   0.180
+## genotypephyEami7:treatmentshade:day28   3.6463    12.8195 166.0100   0.284
+## genotypephyB1:treatmentshade:day35     -4.1400    13.9931 166.0100  -0.296
+## genotypephyB1/B2:treatmentshade:day35  -1.0067    13.9931 166.0100  -0.072
+## genotypephyB2:treatmentshade:day35      3.0667    13.9931 166.0100   0.219
+## genotypephyEami7:treatmentshade:day35   4.2139    12.8195 166.0100   0.329
+##                                       Pr(>|t|)    
+## (Intercept)                           0.148280    
+## genotypephyB1                         0.013414 *  
+## genotypephyB1/B2                      0.157120    
+## genotypephyB2                         0.910950    
+## genotypephyEami7                      0.910866    
+## treatmentshade                        0.742053    
+## day28                                 2.74e-05 ***
+## day35                                  < 2e-16 ***
+## genotypephyB1:treatmentshade          0.743613    
+## genotypephyB1/B2:treatmentshade       0.572298    
+## genotypephyB2:treatmentshade          0.811908    
+## genotypephyEami7:treatmentshade       0.962297    
+## genotypephyB1:day28                   0.000183 ***
+## genotypephyB1/B2:day28                0.003371 ** 
+## genotypephyB2:day28                   0.845983    
+## genotypephyEami7:day28                0.573784    
+## genotypephyB1:day35                   2.09e-06 ***
+## genotypephyB1/B2:day35                0.000167 ***
+## genotypephyB2:day35                   0.724749    
+## genotypephyEami7:day35                0.362774    
+## treatmentshade:day28                  0.520387    
+## treatmentshade:day35                  4.07e-06 ***
+## genotypephyB1:treatmentshade:day28    0.679922    
+## genotypephyB1/B2:treatmentshade:day28 0.931196    
+## genotypephyB2:treatmentshade:day28    0.857490    
+## genotypephyEami7:treatmentshade:day28 0.776431    
+## genotypephyB1:treatmentshade:day35    0.767707    
+## genotypephyB1/B2:treatmentshade:day35 0.942736    
+## genotypephyB2:treatmentshade:day35    0.826799    
+## genotypephyEami7:treatmentshade:day35 0.742787    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Correlation of Fixed Effects:
-##             (Intr) gntyB1 gnB1/B2 gntyB2 gntyE3 gntyE7 trtmnt gntB1:
-## gentypphyB1 -0.649                                                  
-## gntyppB1/B2 -0.643  0.477                                           
-## gentypphyB2 -0.659  0.509  0.498                                    
-## gntypphyEm3 -0.716  0.542  0.547   0.567                            
-## gntypphyEm7 -0.670  0.522  0.512   0.524  0.559                     
-## treatmntshd -0.635  0.485  0.495   0.488  0.526  0.515              
-## gntypphyB1:  0.449 -0.687 -0.350  -0.345 -0.372 -0.364 -0.707       
-## gntypB1/B2:  0.449 -0.343 -0.700  -0.345 -0.372 -0.364 -0.707  0.500
-## gntypphyB2:  0.449 -0.343 -0.350  -0.690 -0.372 -0.364 -0.707  0.500
-## gntypphyE3:  0.502 -0.378 -0.393  -0.386 -0.698 -0.408 -0.793  0.561
-## gntypphyE7:  0.488 -0.376 -0.380  -0.376 -0.401 -0.741 -0.770  0.545
-##             gB1/B2: gntB2: gntE3:
-## gentypphyB1                      
-## gntyppB1/B2                      
-## gentypphyB2                      
-## gntypphyEm3                      
-## gntypphyEm7                      
-## treatmntshd                      
-## gntypphyB1:                      
-## gntypB1/B2:                      
-## gntypphyB2:  0.500               
-## gntypphyE3:  0.561   0.561       
-## gntypphyE7:  0.545   0.545  0.611
-## [1] "28"
-## Linear mixed model fit by REML t-tests use Satterthwaite approximations
-##   to degrees of freedom [lmerMod]
-## Formula: epi ~ genotype * treatment + (1 | flat)
-##    Data: data[data$day == d, ]
-## 
-## REML criterion at convergence: 529
-## 
-## Scaled residuals: 
-##      Min       1Q   Median       3Q      Max 
-## -2.56399 -0.37599  0.03204  0.56209  2.05897 
-## 
-## Random effects:
-##  Groups   Name        Variance Std.Dev.
-##  flat     (Intercept)  6.825   2.613   
-##  Residual             42.094   6.488   
-## Number of obs: 88, groups:  flat, 6
-## 
-## Fixed effects:
-##                                 Estimate Std. Error      df t value
-## (Intercept)                      19.4709     2.9038 54.9800   6.705
-## genotypephyB1                    33.7220     3.8511 74.2400   8.756
-## genotypephyB1/B2                 26.9274     3.7808 72.1900   7.122
-## genotypephyB2                    -1.7684     3.8351 73.8900  -0.461
-## genotypephyEami3                  2.5323     3.5522 75.1100   0.713
-## genotypephyEami7                 -1.8223     3.6330 71.7900  -0.502
-## treatmentshade                    4.4650     3.7459 70.8900   1.192
-## genotypephyB1:treatmentshade      6.8133     5.2974 70.8900   1.286
-## genotypephyB1/B2:treatmentshade   1.2817     5.2974 70.8900   0.242
-## genotypephyB2:treatmentshade     -1.3050     5.2974 70.8900  -0.246
-## genotypephyEami3:treatmentshade   1.7498     4.7212 71.1100   0.371
-## genotypephyEami7:treatmentshade   0.8334     4.8614 71.1200   0.171
-##                                 Pr(>|t|)    
-## (Intercept)                     1.15e-08 ***
-## genotypephyB1                   4.68e-13 ***
-## genotypephyB1/B2                6.50e-10 ***
-## genotypephyB2                      0.646    
-## genotypephyEami3                   0.478    
-## genotypephyEami7                   0.617    
-## treatmentshade                     0.237    
-## genotypephyB1:treatmentshade       0.203    
-## genotypephyB1/B2:treatmentshade    0.810    
-## genotypephyB2:treatmentshade       0.806    
-## genotypephyEami3:treatmentshade    0.712    
-## genotypephyEami7:treatmentshade    0.864    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Correlation of Fixed Effects:
-##             (Intr) gntyB1 gnB1/B2 gntyB2 gntyE3 gntyE7 trtmnt gntB1:
-## gentypphyB1 -0.658                                                  
-## gntyppB1/B2 -0.652  0.478                                           
-## gentypphyB2 -0.667  0.508  0.498                                    
-## gntypphyEm3 -0.725  0.543  0.547   0.566                            
-## gntypphyEm7 -0.680  0.521  0.512   0.524  0.560                     
-## treatmntshd -0.645  0.486  0.495   0.488  0.527  0.516              
-## gntypphyB1:  0.456 -0.688 -0.350  -0.345 -0.373 -0.365 -0.707       
-## gntypB1/B2:  0.456 -0.344 -0.701  -0.345 -0.373 -0.365 -0.707  0.500
-## gntypphyB2:  0.456 -0.344 -0.350  -0.691 -0.373 -0.365 -0.707  0.500
-## gntypphyE3:  0.510 -0.379 -0.394  -0.387 -0.700 -0.408 -0.793  0.561
-## gntypphyE7:  0.496 -0.377 -0.381  -0.377 -0.403 -0.741 -0.771  0.545
-##             gB1/B2: gntB2: gntE3:
-## gentypphyB1                      
-## gntyppB1/B2                      
-## gentypphyB2                      
-## gntypphyEm3                      
-## gntypphyEm7                      
-## treatmntshd                      
-## gntypphyB1:                      
-## gntypB1/B2:                      
-## gntypphyB2:  0.500               
-## gntypphyE3:  0.561   0.561       
-## gntypphyE7:  0.545   0.545  0.611
-## [1] "35"
-## Linear mixed model fit by REML t-tests use Satterthwaite approximations
-##   to degrees of freedom [lmerMod]
-## Formula: epi ~ genotype * treatment + (1 | flat)
-##    Data: data[data$day == d, ]
-## 
-## REML criterion at convergence: 559
-## 
-## Scaled residuals: 
-##      Min       1Q   Median       3Q      Max 
-## -2.95311 -0.45372  0.00117  0.57632  2.09615 
-## 
-## Random effects:
-##  Groups   Name        Variance Std.Dev.
-##  flat     (Intercept) 12.36    3.516   
-##  Residual             61.86    7.865   
-## Number of obs: 88, groups:  flat, 6
-## 
-## Fixed effects:
-##                                 Estimate Std. Error       df t value
-## (Intercept)                     27.38539    3.57909 50.89000   7.652
-## genotypephyB1                   33.56051    4.67741 73.91000   7.175
-## genotypephyB1/B2                29.92272    4.58619 72.06000   6.525
-## genotypephyB2                   -1.48527    4.65675 73.59000  -0.319
-## genotypephyEami3                 4.75478    4.31766 74.77000   1.101
-## genotypephyEami7                -2.18267    4.40601 71.71000  -0.495
-## treatmentshade                   8.63000    4.54088 70.93000   1.901
-## genotypephyB1:treatmentshade     1.70333    6.42177 70.93000   0.265
-## genotypephyB1/B2:treatmentshade -4.61000    6.42177 70.93000  -0.718
-## genotypephyB2:treatmentshade     0.05167    6.42177 70.93000   0.008
-## genotypephyEami3:treatmentshade  1.25458    5.72381 71.12000   0.219
-## genotypephyEami7:treatmentshade  1.96775    5.89382 71.12000   0.334
-##                                 Pr(>|t|)    
-## (Intercept)                     5.18e-10 ***
-## genotypephyB1                   4.66e-10 ***
-## genotypephyB1/B2                8.20e-09 ***
-## genotypephyB2                     0.7507    
-## genotypephyEami3                  0.2743    
-## genotypephyEami7                  0.6218    
-## treatmentshade                    0.0614 .  
-## genotypephyB1:treatmentshade      0.7916    
-## genotypephyB1/B2:treatmentshade   0.4752    
-## genotypephyB2:treatmentshade      0.9936    
-## genotypephyEami3:treatmentshade   0.8271    
-## genotypephyEami7:treatmentshade   0.7395    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Correlation of Fixed Effects:
-##             (Intr) gntyB1 gnB1/B2 gntyB2 gntyE3 gntyE7 trtmnt gntB1:
-## gentypphyB1 -0.648                                                  
-## gntyppB1/B2 -0.642  0.477                                           
-## gentypphyB2 -0.658  0.509  0.498                                    
-## gntypphyEm3 -0.715  0.542  0.547   0.567                            
-## gntypphyEm7 -0.669  0.522  0.512   0.524  0.559                     
-## treatmntshd -0.634  0.485  0.495   0.488  0.526  0.515              
-## gntypphyB1:  0.449 -0.686 -0.350  -0.345 -0.372 -0.364 -0.707       
-## gntypB1/B2:  0.449 -0.343 -0.700  -0.345 -0.372 -0.364 -0.707  0.500
-## gntypphyB2:  0.449 -0.343 -0.350  -0.690 -0.372 -0.364 -0.707  0.500
-## gntypphyE3:  0.501 -0.378 -0.393  -0.386 -0.698 -0.408 -0.793  0.561
-## gntypphyE7:  0.487 -0.376 -0.380  -0.376 -0.401 -0.741 -0.770  0.545
-##             gB1/B2: gntB2: gntE3:
-## gentypphyB1                      
-## gntyppB1/B2                      
-## gentypphyB2                      
-## gntypphyEm3                      
-## gntypphyEm7                      
-## treatmntshd                      
-## gntypphyB1:                      
-## gntypB1/B2:                      
-## gntypphyB2:  0.500               
-## gntypphyE3:  0.561   0.561       
-## gntypphyE7:  0.545   0.545  0.611
 ```
 
-So no shade effect, the only genotype effects are phyB1 and phyB1/phyB2.  phyE P-values > 0.5
+```
+## 
+## Correlation matrix not shown by default, as p = 30 > 20.
+## Use print(x, correlation=TRUE)  or
+## 	 vcov(x)	 if you need it
+```
+
+## Figure 4 get model predictions
+
+```r
+# a bit of messing around to get a prediction data frame that has the pvalues...
+fig4.pred.df <- as.data.frame(summary(lmer1)$coefficients)
+fig4.pred.df$coefname <- row.names(fig4.pred.df)
+fig4.pred.df$genotype <- sapply(fig4.pred.df$coefname,function(x) {
+  ifelse(grepl("genotype",x),
+         regmatches(x,regexpr("(phyB1)|(phyB1/B2)|(phyEami7)|(phyB2)",x)),
+         "Moneymaker")
+})
+fig4.pred.df$day <- sapply(fig4.pred.df$coefname,function(x) {
+  ifelse(grepl("day",x),
+         regmatches(x,regexpr("28|35",x)),
+         "21")
+})
+fig4.pred.df$treatment <- with(fig4.pred.df,ifelse(grepl("treatment",coefname),"shade","sun"))
+fig4.pred.df$length <- predict(lmer1,fig4.pred.df,re.form=NA)
+```
+
+## Figure 4 plot
+
+```r
+colnames(fig4.pred.df)[c(2,5)] <- c("SE","p.value")
+fig4.pred.df$treatment <- factor(fig4.pred.df$treatment,levels=c("sun","shade"))
+fig4.pred.df$genotype <- factor(fig4.pred.df$genotype, levels=c("Moneymaker","phyB1","phyB2","phyB1/B2","phyEami7"), 
+                                labels = c("Moneymaker","phyB1","phyB2","phyB1/phyB2","PHYE-amiRNA"))
+fig4.pred.df$p.value[grepl("^day",fig4.pred.df$coefname)] <- NA # we do not care about the day effect per se
+fig4.pred.df$p.value.txt <- NA
+fig4.pred.df$p.value.txt[fig4.pred.df$p.value < 0.05] <- "*"
+fig4.pred.df$p.value.txt[fig4.pred.df$p.value < 0.01] <- "**"
+fig4.pred.df$p.value.txt[fig4.pred.df$p.value < 0.001] <- "***"
+
+pl <- ggplot(fig4.pred.df,aes(x=genotype,y=length,fill=treatment,ymax=length+SE,min=length-SE))
+pl <- pl + geom_bar(position="dodge",stat="identity")
+pl <- pl + facet_grid(. ~ day)
+pl <- pl + theme_bw() +  theme(axis.text.x=element_text(angle=45,vjust =1,hjust=1))
+pl <- pl + ylab("length (mm)")
+pl <- pl + geom_errorbar(position=position_dodge(width=.9),width=.5)
+pl <- pl + geom_text(aes(label=p.value.txt,y=length+SE+2),position=position_dodge(width=0.9))
+pl + scale_fill_manual(values=c("sun"="gray80","shade"="black"))
+```
+
+```
+## Warning: Removed 24 rows containing missing values (geom_text).
+```
+
+![](phyE_Analysis_files/figure-html/unnamed-chunk-8-1.png)
+
+```r
+ggsave("fig4.pdf",width=7,height=4)
+```
+
+```
+## Warning: Removed 24 rows containing missing values (geom_text).
+```
+
+```r
+pl <- ggplot(fig4.pred.df,aes(x=day,y=length,color=treatment,ymax=length+SE,min=length-SE,group=treatment))
+pl <- pl + geom_line()
+pl <- pl + facet_grid(. ~ genotype)
+pl <- pl + theme_bw() 
+pl <- pl + ylab("length (mm)")
+pl <- pl + geom_errorbar(width=.5)
+pl <- pl + geom_text(aes(label=p.value.txt,y=length+SE+2))
+pl
+```
+
+```
+## Warning: Removed 24 rows containing missing values (geom_text).
+```
+
+![](phyE_Analysis_files/figure-html/unnamed-chunk-8-2.png)
+
+```r
+ggsave("fig4.alt.pdf",width=7,height=4)
+```
+
+```
+## Warning: Removed 24 rows containing missing values (geom_text).
+```
+
+
 
 
 
@@ -828,7 +765,7 @@ pl + geom_text(aes(label=p.value.txt,y=sem.high+2),position=position_dodge(width
 ## Warning: Removed 11 rows containing missing values (geom_text).
 ```
 
-![](phyE_Analysis_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](phyE_Analysis_files/figure-html/unnamed-chunk-13-1.png)
 
 ### multiple comparisons
 
