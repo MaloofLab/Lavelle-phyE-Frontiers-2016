@@ -108,7 +108,7 @@ data$treatment <- relevel(data$treatment,ref="sun")
 data$day <- factor(data$day)
 data$flat <- factor(data$flat)
 data$epi.int12 <- data$epi + data$int1 + data$int2 #analyze overall stem elongation
-data <- droplevels(data[data$genotype!="phyEami3",])
+data <- droplevels(data[!(data$genotype=="phyEami3"|data$genotype=="phyB1/B2"),])
 
 lmer1 <- lmer(epi.int12 ~ genotype*treatment*day + (1|flat),data=data)
 summary(lmer1) 
@@ -137,8 +137,8 @@ fig4.pred.df$length <- predict(lmer1,fig4.pred.df,re.form=NA)
 ```{r}
 colnames(fig4.pred.df)[c(2,5)] <- c("SE","p.value")
 fig4.pred.df$treatment <- factor(fig4.pred.df$treatment,levels=c("sun","shade"))
-fig4.pred.df$genotype <- factor(fig4.pred.df$genotype, levels=c("Moneymaker","phyB1","phyB2","phyB1/B2","phyEami7"), 
-                                labels = c("Moneymaker","phyB1","phyB2","phyB1/phyB2","PHYE-amiRNA"))
+fig4.pred.df$genotype <- factor(fig4.pred.df$genotype, levels=c("Moneymaker","phyB1","phyB2","phyEami7"), 
+                                labels = c("Moneymaker","phyB1","phyB2","PHYE-amiRNA"))
 fig4.pred.df$p.value[grepl("^day",fig4.pred.df$coefname)] <- NA # we do not care about the day effect per se
 fig4.pred.df$p.value.txt <- NA
 fig4.pred.df$p.value.txt[fig4.pred.df$p.value < 0.05] <- "*"
@@ -147,13 +147,14 @@ fig4.pred.df$p.value.txt[fig4.pred.df$p.value < 0.001] <- "***"
 
 pl <- ggplot(fig4.pred.df,aes(x=genotype,y=length,fill=treatment,ymax=length+SE,min=length-SE))
 pl <- pl + geom_bar(position="dodge",stat="identity")
-pl <- pl + facet_grid(. ~ day)
+pl <- pl + facet_grid(. ~ day, labeller=labeller(day = c("21" = "Week 3", "28" = "Week 4", "35" = "Week 5")))
 pl <- pl + theme_bw() +  theme(axis.text.x=element_text(angle=45,vjust =1,hjust=1))
 pl <- pl + ylab("length (mm)")
 pl <- pl + geom_errorbar(position=position_dodge(width=.9),width=.5)
 pl <- pl + geom_text(aes(label=p.value.txt,y=length+SE+2),position=position_dodge(width=0.9))
 pl + scale_fill_manual(values=c("sun"="gray80","shade"="black"))
 ggsave("fig4.pdf",width=7,height=4)
+
 
 pl <- ggplot(fig4.pred.df,aes(x=day,y=length,color=treatment,ymax=length+SE,min=length-SE,group=treatment))
 pl <- pl + geom_line()

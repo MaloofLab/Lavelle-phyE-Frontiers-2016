@@ -294,7 +294,7 @@ data$treatment <- relevel(data$treatment,ref="sun")
 data$day <- factor(data$day)
 data$flat <- factor(data$flat)
 data$epi.int12 <- data$epi + data$int1 + data$int2 #analyze overall stem elongation
-data <- droplevels(data[data$genotype!="phyEami3",])
+data <- droplevels(data[!(data$genotype=="phyEami3"|data$genotype=="phyB1/B2"),])
 
 lmer1 <- lmer(epi.int12 ~ genotype*treatment*day + (1|flat),data=data)
 summary(lmer1) 
@@ -306,88 +306,76 @@ summary(lmer1)
 ## Formula: epi.int12 ~ genotype * treatment * day + (1 | flat)
 ##    Data: data
 ## 
-## REML criterion at convergence: 1404.9
+## REML criterion at convergence: 1119
 ## 
 ## Scaled residuals: 
 ##     Min      1Q  Median      3Q     Max 
-## -3.7364 -0.4180 -0.0237  0.4864  3.0643 
+## -2.9938 -0.3775 -0.0487  0.4490  3.2749 
 ## 
 ## Random effects:
 ##  Groups   Name        Variance Std.Dev.
-##  flat     (Intercept)  33.11    5.754  
-##  Residual             146.86   12.118  
-## Number of obs: 201, groups:  flat, 6
+##  flat     (Intercept)  37.25    6.103  
+##  Residual             109.61   10.470  
+## Number of obs: 165, groups:  flat, 6
 ## 
 ## Fixed effects:
 ##                                       Estimate Std. Error       df t value
-## (Intercept)                             8.0716     5.5285  78.5000   1.460
-## genotypephyB1                          17.7593     7.1063 167.5900   2.499
-## genotypephyB1/B2                        9.9975     7.0344 166.5900   1.421
-## genotypephyB2                           0.7949     7.0964 167.5400   0.112
-## genotypephyEami7                       -0.7587     6.7673 166.4100  -0.112
-## treatmentshade                          2.3067     6.9966 166.0100   0.330
-## day28                                  30.1867     6.9966 166.0100   4.314
-## day35                                  66.2500     6.9966 166.0100   9.469
-## genotypephyB1:treatmentshade            3.2417     9.8947 166.0100   0.328
-## genotypephyB1/B2:treatmentshade         5.5983     9.8947 166.0100   0.566
-## genotypephyB2:treatmentshade           -2.3583     9.8947 166.0100  -0.238
-## genotypephyEami7:treatmentshade         0.4295     9.0731 166.0900   0.047
-## genotypephyB1:day28                    37.8733     9.8947 166.0100   3.828
-## genotypephyB1/B2:day28                 29.4333     9.8947 166.0100   2.975
-## genotypephyB2:day28                    -1.9250     9.8947 166.0100  -0.195
-## genotypephyEami7:day28                 -5.3738     9.5347 166.0100  -0.564
-## genotypephyB1:day35                    48.6617     9.8947 166.0100   4.918
-## genotypephyB1/B2:day35                 38.1200     9.8947 166.0100   3.853
-## genotypephyB2:day35                     3.4900     9.8947 166.0100   0.353
-## genotypephyEami7:day35                 -8.7014     9.5347 166.0100  -0.913
-## treatmentshade:day28                    6.3733     9.8947 166.0100   0.644
-## treatmentshade:day35                   47.1633     9.8947 166.0100   4.767
-## genotypephyB1:treatmentshade:day28      5.7833    13.9931 166.0100   0.413
-## genotypephyB1/B2:treatmentshade:day28  -1.2100    13.9931 166.0100  -0.086
-## genotypephyB2:treatmentshade:day28      2.5167    13.9931 166.0100   0.180
-## genotypephyEami7:treatmentshade:day28   3.6463    12.8195 166.0100   0.284
-## genotypephyB1:treatmentshade:day35     -4.1400    13.9931 166.0100  -0.296
-## genotypephyB1/B2:treatmentshade:day35  -1.0067    13.9931 166.0100  -0.072
-## genotypephyB2:treatmentshade:day35      3.0667    13.9931 166.0100   0.219
-## genotypephyEami7:treatmentshade:day35   4.2139    12.8195 166.0100   0.329
+## (Intercept)                             7.3629     5.0034  50.8200   1.472
+## genotypephyB1                          18.7125     6.1603 137.4100   3.038
+## genotypephyB2                           1.8875     6.1493 137.3100   0.307
+## genotypephyEami7                       -0.3532     5.8491 136.3400  -0.060
+## treatmentshade                          2.3067     6.0447 136.0800   0.382
+## day28                                  30.1867     6.0447 136.0800   4.994
+## day35                                  66.2500     6.0447 136.0800  10.960
+## genotypephyB1:treatmentshade            3.2417     8.5484 136.0800   0.379
+## genotypephyB2:treatmentshade           -2.3583     8.5484 136.0800  -0.276
+## genotypephyEami7:treatmentshade         0.6711     7.8405 136.1600   0.086
+## genotypephyB1:day28                    37.8733     8.5484 136.0800   4.430
+## genotypephyB2:day28                    -1.9250     8.5484 136.0800  -0.225
+## genotypephyEami7:day28                 -5.3738     8.2375 136.0800  -0.652
+## genotypephyB1:day35                    48.6617     8.5484 136.0800   5.692
+## genotypephyB2:day35                     3.4900     8.5484 136.0800   0.408
+## genotypephyEami7:day35                 -8.7014     8.2375 136.0800  -1.056
+## treatmentshade:day28                    6.3733     8.5484 136.0800   0.746
+## treatmentshade:day35                   47.1633     8.5484 136.0800   5.517
+## genotypephyB1:treatmentshade:day28      5.7833    12.0893 136.0800   0.478
+## genotypephyB2:treatmentshade:day28      2.5167    12.0893 136.0800   0.208
+## genotypephyEami7:treatmentshade:day28   3.6463    11.0753 136.0800   0.329
+## genotypephyB1:treatmentshade:day35     -4.1400    12.0893 136.0800  -0.342
+## genotypephyB2:treatmentshade:day35      3.0667    12.0893 136.0800   0.254
+## genotypephyEami7:treatmentshade:day35   4.2139    11.0753 136.0800   0.380
 ##                                       Pr(>|t|)    
-## (Intercept)                           0.148280    
-## genotypephyB1                         0.013414 *  
-## genotypephyB1/B2                      0.157120    
-## genotypephyB2                         0.910950    
-## genotypephyEami7                      0.910866    
-## treatmentshade                        0.742053    
-## day28                                 2.74e-05 ***
+## (Intercept)                            0.14731    
+## genotypephyB1                          0.00285 ** 
+## genotypephyB2                          0.75936    
+## genotypephyEami7                       0.95194    
+## treatmentshade                         0.70335    
+## day28                                 1.78e-06 ***
 ## day35                                  < 2e-16 ***
-## genotypephyB1:treatmentshade          0.743613    
-## genotypephyB1/B2:treatmentshade       0.572298    
-## genotypephyB2:treatmentshade          0.811908    
-## genotypephyEami7:treatmentshade       0.962297    
-## genotypephyB1:day28                   0.000183 ***
-## genotypephyB1/B2:day28                0.003371 ** 
-## genotypephyB2:day28                   0.845983    
-## genotypephyEami7:day28                0.573784    
-## genotypephyB1:day35                   2.09e-06 ***
-## genotypephyB1/B2:day35                0.000167 ***
-## genotypephyB2:day35                   0.724749    
-## genotypephyEami7:day35                0.362774    
-## treatmentshade:day28                  0.520387    
-## treatmentshade:day35                  4.07e-06 ***
-## genotypephyB1:treatmentshade:day28    0.679922    
-## genotypephyB1/B2:treatmentshade:day28 0.931196    
-## genotypephyB2:treatmentshade:day28    0.857490    
-## genotypephyEami7:treatmentshade:day28 0.776431    
-## genotypephyB1:treatmentshade:day35    0.767707    
-## genotypephyB1/B2:treatmentshade:day35 0.942736    
-## genotypephyB2:treatmentshade:day35    0.826799    
-## genotypephyEami7:treatmentshade:day35 0.742787    
+## genotypephyB1:treatmentshade           0.70512    
+## genotypephyB2:treatmentshade           0.78306    
+## genotypephyEami7:treatmentshade        0.93192    
+## genotypephyB1:day28                   1.92e-05 ***
+## genotypephyB2:day28                    0.82217    
+## genotypephyEami7:day28                 0.51527    
+## genotypephyB1:day35                   7.38e-08 ***
+## genotypephyB2:day35                    0.68372    
+## genotypephyEami7:day35                 0.29269    
+## treatmentshade:day28                   0.45722    
+## treatmentshade:day35                  1.68e-07 ***
+## genotypephyB1:treatmentshade:day28     0.63314    
+## genotypephyB2:treatmentshade:day28     0.83541    
+## genotypephyEami7:treatmentshade:day28  0.74249    
+## genotypephyB1:treatmentshade:day35     0.73254    
+## genotypephyB2:treatmentshade:day35     0.80014    
+## genotypephyEami7:treatmentshade:day35  0.70418    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 ```
 ## 
-## Correlation matrix not shown by default, as p = 30 > 20.
+## Correlation matrix not shown by default, as p = 24 > 20.
 ## Use print(x, correlation=TRUE)  or
 ## 	 vcov(x)	 if you need it
 ```
@@ -417,8 +405,8 @@ fig4.pred.df$length <- predict(lmer1,fig4.pred.df,re.form=NA)
 ```r
 colnames(fig4.pred.df)[c(2,5)] <- c("SE","p.value")
 fig4.pred.df$treatment <- factor(fig4.pred.df$treatment,levels=c("sun","shade"))
-fig4.pred.df$genotype <- factor(fig4.pred.df$genotype, levels=c("Moneymaker","phyB1","phyB2","phyB1/B2","phyEami7"), 
-                                labels = c("Moneymaker","phyB1","phyB2","phyB1/phyB2","PHYE-amiRNA"))
+fig4.pred.df$genotype <- factor(fig4.pred.df$genotype, levels=c("Moneymaker","phyB1","phyB2","phyEami7"), 
+                                labels = c("Moneymaker","phyB1","phyB2","PHYE-amiRNA"))
 fig4.pred.df$p.value[grepl("^day",fig4.pred.df$coefname)] <- NA # we do not care about the day effect per se
 fig4.pred.df$p.value.txt <- NA
 fig4.pred.df$p.value.txt[fig4.pred.df$p.value < 0.05] <- "*"
@@ -427,7 +415,7 @@ fig4.pred.df$p.value.txt[fig4.pred.df$p.value < 0.001] <- "***"
 
 pl <- ggplot(fig4.pred.df,aes(x=genotype,y=length,fill=treatment,ymax=length+SE,min=length-SE))
 pl <- pl + geom_bar(position="dodge",stat="identity")
-pl <- pl + facet_grid(. ~ day)
+pl <- pl + facet_grid(. ~ day, labeller=labeller(day = c("21" = "Week 3", "28" = "Week 4", "35" = "Week 5")))
 pl <- pl + theme_bw() +  theme(axis.text.x=element_text(angle=45,vjust =1,hjust=1))
 pl <- pl + ylab("length (mm)")
 pl <- pl + geom_errorbar(position=position_dodge(width=.9),width=.5)
@@ -436,7 +424,7 @@ pl + scale_fill_manual(values=c("sun"="gray80","shade"="black"))
 ```
 
 ```
-## Warning: Removed 24 rows containing missing values (geom_text).
+## Warning: Removed 20 rows containing missing values (geom_text).
 ```
 
 ![](phyE_Analysis_files/figure-html/unnamed-chunk-8-1.png)
@@ -446,7 +434,7 @@ ggsave("fig4.pdf",width=7,height=4)
 ```
 
 ```
-## Warning: Removed 24 rows containing missing values (geom_text).
+## Warning: Removed 20 rows containing missing values (geom_text).
 ```
 
 ```r
@@ -461,7 +449,7 @@ pl
 ```
 
 ```
-## Warning: Removed 24 rows containing missing values (geom_text).
+## Warning: Removed 20 rows containing missing values (geom_text).
 ```
 
 ![](phyE_Analysis_files/figure-html/unnamed-chunk-8-2.png)
@@ -471,7 +459,7 @@ ggsave("fig4.alt.pdf",width=7,height=4)
 ```
 
 ```
-## Warning: Removed 24 rows containing missing values (geom_text).
+## Warning: Removed 20 rows containing missing values (geom_text).
 ```
 
 
