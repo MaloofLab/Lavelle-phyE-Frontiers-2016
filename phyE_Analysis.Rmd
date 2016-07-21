@@ -24,7 +24,7 @@ fig2ab$light <- relevel(fig2ab$light,ref="sun")
 table(fig2ab$rep,fig2ab$genotype)
 
 sem <- function(x,na.rm=T) {
-  if(na.rm) x <- complete.cases(x)
+  if(na.rm) x <- na.omit(x)
   sd(x) / sqrt(length(x))
 }
                
@@ -130,6 +130,13 @@ data$genotype <- sub("^([1,2])","B\\1",data$genotype)
 data$genotype <- factor(data$genotype,levels=c("MM","A","B1","B2","E3","E7","B12","B1E3","B1E7","B2E3","B2E7","TR3","TR7","QD3","QD7"))
 data$rep <- factor(data$rep)
 data$start <- factor(data$start)
+data$shelf <- sapply(as.character(data$start),switch,
+                     "1" = "top",
+                     "2" = "middle",
+                     "3" = "bottom",
+                     "4" = "top",
+                     "5" = "middle",
+                     "6" = "bottom")
 ```
 
 ## Focus on E7
@@ -220,8 +227,6 @@ comparisons <- c("B1E7 - B1",
                  "QD7:shade - TR7:shade")
 
 contr <- make.contr(comparisons = comparisons, contr)
-
-summary(glht(lmer.epi4, linfct=contr),test=adjusted("holm"))
 
 summary(glht(lmer.epi.int12_2, linfct=contr),test=adjusted("holm"))
 ```
