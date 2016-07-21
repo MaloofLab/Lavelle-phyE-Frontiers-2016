@@ -2,7 +2,9 @@
 title: "phyE mutant analysis"
 author: "Julin Maloof"
 date: "August 10, 2015; updated July 11-18, 2016"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 ```{r preliminaries}
