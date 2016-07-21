@@ -5,13 +5,120 @@ date: "August 10, 2015; updated July 11-18, 2016"
 output: html_document
 ---
 
-## Load the data and libraries
-
-```{r, results='hide'}
+```{r preliminaries}
 library(ggplot2)
 library(lme4)
 library(lmerTest)
 library(multcomp)
+```
+
+
+# Figure 2
+```{r}
+fig2ab <- read.csv("Fig2AB_hyps.csv")
+
+summary(fig2ab)
+
+fig2ab$light <- relevel(fig2ab$light,ref="sun")
+
+table(fig2ab$rep,fig2ab$genotype)
+
+sem <- function(x,na.rm=T) {
+  if(na.rm) x <- complete.cases(x)
+  sd(x) / sqrt(length(x))
+}
+               
+```
+
+## Figure 2A
+```{r}
+fig2a <- droplevels(fig2ab[grep("Arabidopsis",fig2ab$species),])
+levels(fig2a$genotype)
+
+fig2a.mean <- with(fig2a,tapply(length,list(light,genotype),mean,na.rm=T))
+fig2a.mean
+
+fig2a.sem <- with(fig2a,tapply(length,list(light,genotype),mean,na.rm=T))
+fig2a.sem <- with(fig2a,tapply(length,list(light,genotype),sem))
+
+par(las=3,mar=c(6, 4, 4, 2) + 0.1)
+x <- barplot(fig2a.mean,beside=T,col=c("grey80","black"),ylim=c(0,max(fig2a.mean+fig2a.sem)),ylab="hyp length (mm)")
+arrows(x,fig2a.mean+fig2a.sem,x,fig2a.mean-fig2a.sem,code=3,angle=90,length=.05)
+```
+
+## Figure 2B
+```{r}
+fig2b <- droplevels(fig2ab[grep("S.lyc",fig2ab$species,fixed=T),])
+levels(fig2b$genotype)
+
+fig2b.mean <- with(fig2b,tapply(length,list(light,genotype),mean,na.rm=T))
+fig2b.mean
+
+fig2b.sem <- with(fig2b,tapply(length,list(light,genotype),mean,na.rm=T))
+fig2b.sem <- with(fig2b,tapply(length,list(light,genotype),sem))
+
+par(las=3,mar=c(6, 4, 4, 2) + 0.1)
+x <- barplot(fig2b.mean,beside=T,col=c("grey80","black"),ylim=c(0,max(fig2b.mean+fig2b.sem)),ylab="hyp length (mm)")
+arrows(x,fig2b.mean+fig2b.sem,x,fig2b.mean-fig2b.sem,code=3,angle=90,length=.05)
+```
+
+## Figure 2AB t-tests
+
+```{r}
+p.adjust(sapply(levels(fig2ab$genotype), 
+                function(gt) {
+  t.test(length ~ light, data=fig2ab, subset=grep(gt,genotype))$p.value
+}))
+```
+
+## Figure 2C
+
+```{r}
+fig2c <- read.csv("Fig2C_tomato_int.csv")
+summary(fig2c)
+fig2c$treatment <- relevel(fig2c$treatment,ref="sun")
+
+fig2c.mean <- with(fig2c,tapply(internode2,list(treatment,genotype),mean,na.rm=T))
+fig2c.mean
+
+fig2c.sem <- with(fig2c,tapply(internode2,list(treatment,genotype),mean,na.rm=T))
+fig2c.sem <- with(fig2c,tapply(internode2,list(treatment,genotype),sem))
+
+par(las=3,mar=c(6, 4, 4, 2) + 0.1)
+x <- barplot(fig2c.mean,beside=T,col=c("grey80","black"),ylim=c(0,max(fig2c.mean+fig2c.sem)),ylab="hyp length (mm)")
+arrows(x,fig2c.mean+fig2c.sem,x,fig2c.mean-fig2c.sem,code=3,angle=90,length=.05)
+
+p.adjust(sapply(levels(fig2c$genotype), 
+                function(gt) {
+  t.test(internode2 ~ treatment, data=fig2c, subset=grep(gt,genotype))$p.value
+}))
+
+```
+
+
+# Figure 4
+
+## P-values for Figure 4
+```{r}
+data <- read.csv("figure4phyE.csv")
+summary(data)
+data$treatment <- relevel(data$treatment,ref="sun")
+data$day <- factor(data$day)
+data$flat <- factor(data$flat)
+for (d in levels(data$day)) {
+  print(d)
+lmer1 <- lmer(epi ~ genotype*treatment + (1|flat),data=data[data$day==d,])
+print(summary(lmer1))
+}
+```
+
+So no shade effect, the only genotype effects are phyB1 and phyB1/phyB2.  phyE P-values > 0.5
+
+
+
+# Figure 5
+
+```{r, results='hide'}
 data <- read.csv("phyintpetbothreps.csv")
 head(data)
 summary(data)
@@ -27,113 +134,16 @@ data$start <- factor(data$start)
 
 ## Focus on E7
 
-if we want to only focus on E7 run the following
+if we want to only focus on E7 run the following.  Note: results are similar between the two lines, but our qRTPCR support for RNA reductions is not as clear for E3
 ```{r, eval=TRUE}
 data <- data[!grepl("3",data$genotype),]
 data <- droplevels(data)
 ```
 
-
-## Coefficient of variation for each organ
-I am curious as to which data have the least "noise" or residual variation.  One way to do this is to calculate the coefficient of variation.  CV is standard dev / mean.  I am also curious, for the internodes, what combining them looks like.
-
-```{r}
-data <- within(data,{
-  epi.int1 <- epi+int1
-  epi.int12 <- epi+int1+int2 # from the perspective of having worked with the plants, this seems best.
-  epi.int123 <- epi+int1+int2+int3
-})
-with(data,{
-  sapply(names(data)[7:17],function(x) {
-    means <- tapply(get(x),list(genotype,treatment,rep),mean,na.rm=T)
-    sdevs <- tapply(get(x),list(genotype,treatment,rep),sd,na.rm=T)
-    mean(sdevs/means,na.rm=T)
-  })
-})
-```
-
-Conclusion: earlier organs are better.  Combining epi+int1 is also good; combining all shoot organs may be reasonable.
-
-## Modelling for individual organs
-
-Use a mixed effect model to take into account random variation, like rep and shelf.
-
-First create the "shelf" variable.
-```{r}
-data$shelf <- sapply(as.character(data$start),switch,
-                     "1" = "top",
-                     "2" = "middle",
-                     "3" = "bottom",
-                     "4" = "top",
-                     "5" = "middle",
-                     "6" = "bottom")
-```
-
-A model for epi.  Start with full model, compare to simpler models.  Keep simplest model that still fits well.
-```{r}
-lmer.epi1 <- lmer(epi ~ genotype*treatment + (1|rep) + (1|shelf) + (1|start), data=data)
-lmer.epi2 <- lmer(epi ~ genotype*treatment + (1|rep) + (1|start), data=data)
-anova(lmer.epi1,lmer.epi2) # no pref; drop shelf
-lmer.epi3 <- lmer(epi ~ genotype*treatment + (1|start), data=data)
-anova(lmer.epi2,lmer.epi3) # keep rep
-lmer.epi4 <- lmer(epi ~ genotype*treatment + (1|rep), data=data)
-anova(lmer.epi2,lmer.epi4) # drop start on full data set (but not if using E7 only!)
-summary(lmer.epi4) #final model.
-```
-
-Get predictions from model for plotting.  First create a data frame to hold the results.  Then use `predict()` to get the BLUPs and finally extract the errors from the model.
-```{r}
-epi.results <- data.frame(
-  genotype=rep(levels(data$genotype),2),
-  treatment=rep(levels(data$treatment),each=nlevels(data$genotype))
-)
-epi.results$epi <- predict(lmer.epi4,epi.results,re.form=NA)
-head(epi.results)
-
-#confint95 <- confint(lmer.epi4,parm="beta_",method="boot",nsim=1000) 
-#because these are centered on the coefficients rather than on the final estimates we need to do some conversion
-#confint95.adj <- confint95-fixef(lmer.epi4)+epi.results$epi
-
-#add to the df
-#epi.results$confint95.low <- confint95.adj[,1] 
-#epi.results$confint95.high <- confint95.adj[,2]
-#epi.results
-
-#Although less precise we can also add the s.e.m from the original fit.
-#Because the standard in our field for plots is s.e.m this will make a more "traditional" plot
-
-epi.results$sem.low <- epi.results$epi - summary(lmer.epi4)$coefficients[,"Std. Error"]
-epi.results$sem.high <- epi.results$epi + summary(lmer.epi4)$coefficients[,"Std. Error"]
-
-#add p-values
-epi.results$p.value <- summary(lmer.epi4)$coefficients[,"Pr(>|t|)"]
-
-# add character representation of significance
-epi.results$p.value.txt <- NA
-epi.results$p.value.txt[epi.results$p.value < 0.05] <- "*"
-epi.results$p.value.txt[epi.results$p.value < 0.01] <- "**"
-epi.results$p.value.txt[epi.results$p.value < 0.001] <- "***"
-```
-
-plot it
-```{r}
-epi.results$treatment <- relevel(epi.results$treatment,ref="sun")
-epi.results$genotype <- factor(epi.results$genotype,
-                               levels=c("MM","A","B1","B2","E3","E7","B12","B1E3","B1E7","B2E3","B2E7","TR3","TR7","QD3","QD7"),
-                               labels=unlist(strsplit("MoneyMaker, phyA, phyB1, phyB2, phyE-3, phyE-7, phyB1/phyB2, phyB1/phyE-3, phyB1/phyE-7, phyB2/phyE-3, phyB2/phyE-7, phyB1/phyB2/phyE-3, phyB1/phyB2/phyE-7, phyA/phyB1/phyB2/phyE-3, phyA/phyB1/phyB2/phyE-7",split=", ")))
-pl <- ggplot(epi.results,aes(x=genotype,fill=treatment,y=epi))
-pl <- pl + geom_bar(stat="identity",position="dodge")
-pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
-pl <- pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
-pl <- pl + theme(axis.text.x=element_text(angle=45,vjust =1,hjust=1))
-pl <- pl + ylab("length (mm)")
-pl + geom_text(aes(label=p.value.txt,y=sem.high+1),position=position_dodge(width=0.9))
-ggsave("phyE_epicotyl.pdf",height=5,width=7.5)
-```
-
 ## epi+int1+int2
 
 ```{r}
+data$epi.int12 <- data$epi + data$int1 + data$int2
 lmer.epi.int12_1 <- lmer(epi.int12 ~ genotype*treatment + (1|rep) + (1|shelf) + (1|start), data=data)
 lmer.epi.int12_2 <- lmer(epi.int12 ~ genotype*treatment + (1|rep) + (1|start), data=data)
 anova(lmer.epi.int12_1,lmer.epi.int12_2) # no pref; drop shelf
@@ -152,18 +162,6 @@ epi.int12.results <- data.frame(
 )
 epi.int12.results$epi.int12 <- predict(lmer.epi.int12_2,epi.int12.results,re.form=NA)
 head(epi.int12.results)
-
-#confint95 <- confint(lmer.epi.int12_2,parm="beta_",method="boot",nsim=1000) 
-#because these are centered on the coefficients rather than on the final estimates we need to do some conversion
-#confint95.adj <- confint95-fixef(lmer.epi.int12_4)+epi.int12.results$epi.int12
-
-#add to the df
-#epi.int12.results$confint95.low <- confint95.adj[,1] 
-#epi.int12.results$confint95.high <- confint95.adj[,2]
-#epi.int12.results
-
-#Although less precise we can also add the s.e.m from the original fit.
-#Because the standard in our field for plots is s.e.m this will make a more "traditional" plot
 
 epi.int12.results$sem.low <- epi.int12.results$epi.int12 - summary(lmer.epi.int12_2)$coefficients[,"Std. Error"]
 epi.int12.results$sem.high <- epi.int12.results$epi.int12 + summary(lmer.epi.int12_2)$coefficients[,"Std. Error"]
@@ -192,13 +190,6 @@ pl <- pl + theme(axis.text.x=element_text(angle=45,vjust =1,hjust=1))
 pl <- pl + ylab("length (mm)")
 pl + geom_text(aes(label=p.value.txt,y=sem.high+2),position=position_dodge(width=0.9))
 
-#to subset
-epi.int12.results.singles <- epi.int12.results[epi.int12.results$genotype %in% c("MoneyMaker","phyA","phyB1","phyB2","phyE-7"),] #i.e. for singles
-pl <- ggplot(epi.int12.results.singles,aes(x=genotype,fill=treatment,y=epi.int12))
-pl <- pl + geom_bar(stat="identity",position="dodge")
-pl <- pl + geom_errorbar(aes(ymin=sem.low,ymax=sem.high),position=position_dodge(width=.9),width=.5)
-pl + scale_fill_manual(values=c("skyblue","darkred")) # feel free to change
-ggsave("phyE_epicotyl.pdf",height=5,width=7.5)
 ```
 
 ### multiple comparisons
@@ -234,35 +225,4 @@ summary(glht(lmer.epi4, linfct=contr),test=adjusted("holm"))
 
 summary(glht(lmer.epi.int12_2, linfct=contr),test=adjusted("holm"))
 ```
-
-### Additional comparisons
-
-We do not have enough power to do all pair-wise comparisions.  Instead, look at the two of most relevance to this study (comparing triple to relevant doubles)
-```{r}
-
-comparisons <- c("genotypeTR7:treatmentshade - genotypeB12:treatmentshade = 0",
-                 "genotypeTR7:treatmentshade - genotypeB1E7:treatmentshade = 0",
-                 "genotypeTR7:treatmentshade - genotypeB2E7:treatmentshade = 0")
-
-glht2 <- glht(lmer.epi.int12_2,linfct=comparisons)
-
-summary(glht2,test=adjusted("Westfall"))
-
-```
-
-## P-values for Figure 4
-
-```{r}
-data <- read.csv("figure4phyE.csv")
-summary(data)
-data$treatment <- relevel(data$treatment,ref="sun")
-data$day <- factor(data$day)
-data$flat <- factor(data$flat)
-lmer1 <- lmer(epi ~ genotype*treatment*day + (1|flat),data=data)
-summary(lmer1)
-summary(lmer1)$coefficients[grepl("phyE",rownames(summary(lmer1)$coefficients)),]
-min(summary(lmer1)$coefficients[grepl("phyE",rownames(summary(lmer1)$coefficients)),"Pr(>|t|)"])
-```
-
-So no shade effect, the only genotype effects are phyB1 and phyB1/phyB2.  phyE P-values > 0.5
 
